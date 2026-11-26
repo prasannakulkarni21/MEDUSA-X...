@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MEDUSA-X — Clinical Intelligence</title>
+<style>
+:root{
+  --bg:#0a0f1e;--card:#111827;--muted:#1a2234;
+  --border:#1e293b;--border2:#334155;
+  --cyan:#06b6d4;--cyan2:#0891b2;--cyan-soft:rgba(6,182,212,.12);
+  --green:#10b981;--yellow:#f59e0b;--red:#ef4444;--purple:#8b5cf6;
+  --text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--t4:#475569;
+  --r:12px;--r2:8px;--sh:0 10px 40px rgba(0,0,0,.55);
+  --ff:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ff);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:14px;color:var(--text);background:var(--bg);border:1px solid var(--border2);border-radius:var(--r2);padding:10px 12px;width:100%;outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(6,182,212,.15)}
+select option{background:#111827}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.hidden{display:none!important}
+/* Page system */
+.page{display:none;min-height:100vh;animation:fadeIn .2s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+/* Utility */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border:none;border-radius:var(--r2);font-weight:700;font-size:13.5px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:linear-gradient(135deg,var(--cyan2),var(--cyan));color:#fff}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-primary:disabled{background:#164e63;color:#475569;cursor:default;transform:none}
+.btn-ghost{background:var(--muted);border:1px solid var(--border2);color:var(--t2)}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn-danger{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+.btn-sm{padding:7px 13px;font-size:12.5px}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
+.alert{padding:11px 15px;border-radius:var(--r2);font-size:13px;font-weight:500;border:1px solid}
+.alert-error{background:rgba(239,68,68,.1);color:var(--red);border-color:rgba(239,68,68,.3)}
+.alert-success{background:rgba(16,185,129,.1);color:var(--green);border-color:rgba(16,185,129,.3)}
+.alert-info{background:var(--cyan-soft);color:var(--cyan);border-color:rgba(6,182,212,.3)}
+/* Layout */
+header.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:13px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand-logo{font-size:20px;font-weight:900;letter-spacing:-.03em;background:linear-gradient(135deg,var(--text),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.app-body{max-width:1140px;margin:0 auto;padding:26px 20px 56px}
+/* Forms */
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 16px}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.form-group label{font-size:12px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.04em}
+.form-group textarea{resize:vertical;min-height:80px}
+/* Table */
+.table-wrap{overflow-x:auto;border-radius:var(--r)}
+table{width:100%;border-collapse:collapse}
+th{padding:11px 15px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--t3);background:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:13px 15px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.02);cursor:pointer}
+tr:last-child td{border-bottom:none}
+/* Tabs */
+.tab-bar{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:22px}
+.tab-btn{padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--t3);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin-bottom:-1px}
+.tab-btn.active{border-bottom-color:var(--cyan);color:var(--cyan)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+/* Sidebar nav */
+.dash-layout{display:flex;gap:22px;min-height:calc(100vh - 60px)}
+.sidebar{width:210px;flex-shrink:0;padding:20px 0}
+.sidebar .nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:var(--r2);font-size:13.5px;font-weight:600;cursor:pointer;color:var(--t3);border:none;background:none;width:100%;text-align:left;border-left:3px solid transparent;margin-bottom:3px;transition:all .15s}
+.sidebar .nav-item:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.sidebar .nav-item.active{color:var(--cyan);background:var(--cyan-soft);border-left-color:var(--cyan)}
+.sidebar-content{flex:1;min-width:0;padding:20px 0}
+/* Avatar */
+.avatar{border-radius:50%;background:linear-gradient(135deg,var(--cyan2),var(--cyan));display:grid;place-items:center;font-weight:800;color:#fff;flex-shrink:0}
+/* OTP boxes */
+.otp-boxes{display:flex;gap:10px}
+.otp-box{width:48px;height:56px;text-align:center;font-size:22px;font-weight:700;font-family:var(--mono);border:1px solid var(--border2);border-radius:var(--r2);background:var(--bg);color:var(--text);padding:0;flex-shrink:0;transition:border-color .15s}
+.otp-box:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(6,182,212,.15)}
+.otp-box.filled{border-color:var(--cyan)}
+/* Category color system */
+.cat-pdf{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.cat-lab{background:rgba(59,130,246,.15);color:#3b82f6;border:1px solid rgba(59,130,246,.3)}
+.cat-rx{background:rgba(139,92,246,.15);color:var(--purple);border:1px solid rgba(139,92,246,.3)}
+.cat-admit{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.cat-disch{background:rgba(245,158,11,.15);color:var(--yellow);border:1px solid rgba(245,158,11,.3)}
+.cat-prog{background:var(--cyan-soft);color:var(--cyan);border:1px solid rgba(6,182,212,.3)}
+.cat-scan{background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.3)}
+/* Toast */
+#toast-wrap{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:999}
+.toast{padding:11px 18px;border-radius:10px;font-size:13.5px;font-weight:500;box-shadow:var(--sh);border-left:4px solid var(--cyan);background:#0f172a;color:var(--text);animation:slideUp .18s ease}
+.toast.error{border-left-color:var(--red)}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* Responsive */
+@media(max-width:700px){.form-row{grid-template-columns:1fr}.dash-layout{flex-direction:column}.sidebar{width:100%;padding:14px 0 0}}
+</style>
+</head>
+<body>
+
+<!-- ===== TOAST ===== -->
+<div id="toast-wrap"></div>
+
+<!-- ================================================================
+  PAGE: Landing
+================================================================ -->
+<div class="page active" id="page-landing">
+  <div style="min-height:100vh;background:linear-gradient(135deg,#0a0f1e 0%,#0f1f3d 55%,#0a0f1e 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.3);border-radius:999px;padding:7px 18px;font-size:12px;font-weight:700;color:var(--cyan);letter-spacing:.08em;text-transform:uppercase;margin-bottom:28px">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--cyan);display:inline-block"></span>
+      MEDUSA-X — Clinical Intelligence Platform
+    </div>
+    <div style="font-size:clamp(44px,9vw,80px);font-weight:900;letter-spacing:-.04em;background:linear-gradient(135deg,#e2e8f0,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px">MEDUSA-X</div>
+    <div style="font-size:14px;color:var(--cyan);letter-spacing:.2em;text-transform:uppercase;font-weight:600;margin-bottom:28px">CLINICAL INTELLIGENCE</div>
+    <p style="color:var(--t2);max-width:520px;line-height:1.7;margin-bottom:48px;font-size:15px">A secure, integrated healthcare platform connecting patients and doctors. Patients log in with their registered mobile number via OTP. Doctors use their secure credentials.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;max-width:620px;width:100%">
+      <div class="card" style="border-color:rgba(6,182,212,.35);text-align:left;cursor:pointer" onclick="showPage('page-patient-login')">
+        <div style="font-size:36px;margin-bottom:14px">📱</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:6px">Patient Portal</div>
+        <div style="font-size:13px;color:var(--t3);margin-bottom:20px;line-height:1.6">Log in with your registered mobile number and OTP to access your medical records.</div>
+        <button class="btn btn-primary" onclick="event.stopPropagation();showPage('page-patient-login')">Patient Login →</button>
+      </div>
+      <div class="card" style="border-color:rgba(100,116,139,.3);text-align:left;cursor:pointer" onclick="showPage('page-doctor-login')">
+        <div style="font-size:36px;margin-bottom:14px">🩺</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:6px">Doctor Portal</div>
+        <div style="font-size:13px;color:var(--t3);margin-bottom:20px;line-height:1.6">Doctors log in with their Doctor ID and password to access the clinical dashboard.</div>
+        <button class="btn btn-ghost" onclick="event.stopPropagation();showPage('page-doctor-login')">Doctor Login →</button>
+      </div>
+    </div>
+    <p style="margin-top:40px;font-size:11px;color:var(--border2)">Demo — data stored in browser (localStorage) · OTP delivery illustrative only</p>
+  </div>
+</div>
+
+<!-- ================================================================
+  PAGE: Patient Login
+================================================================ -->
+<div class="page" id="page-patient-login">
+  <div style="min-height:100vh;background:linear-gradient(135deg,#0a0f1e,#0f1f3d);display:flex;align-items:center;justify-content:center;padding:20px">
+    <div style="width:100%;max-width:420px">
+      <div style="text-align:center;margin-bottom:32px">
+        <div class="brand-logo" style="font-size:34px">MEDUSA-X</div>
+        <div style="font-size:11px;color:var(--cyan);letter-spacing:.2em;text-transform:uppercase;font-weight:600;margin-top:4px">CLINICAL INTELLIGENCE</div>
+      </div>
+
+      <div class="card" style="box-shadow:var(--sh)">
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">Patient Portal Login</h2>
+        <p style="color:var(--t3);font-size:13px;margin-bottom:26px">Secure access to your medical records</p>
+
+        <div id="pl-alert" class="alert hidden" style="margin-bottom:16px"></div>
+
+        <!-- Step 1: Phone -->
+        <div id="pl-step-phone">
+          <div class="form-group">
+            <label>Registered Mobile Number</label>
+            <input type="tel" id="pl-phone" placeholder="+91 98765 43210" autocomplete="tel"/>
+          </div>
+          <button class="btn btn-primary" style="width:100%;padding:13px" onclick="plSendOtp()">Send OTP →</button>
+        </div>
+
+        <!-- Step 2: OTP -->
+        <div id="pl-step-otp" class="hidden">
+          <div style="font-size:13px;color:var(--t2);margin-bottom:14px">OTP sent to <strong id="pl-phone-display" style="color:var(--text)"></strong></div>
+          <div class="form-group">
+            <label>Enter OTP</label>
+            <div class="otp-boxes" id="otp-boxes">
+              <input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpInput(this,0)" onkeydown="otpKey(event,0)"/>
+              <input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpInput(this,1)" onkeydown="otpKey(event,1)"/>
+              <input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpInput(this,2)" onkeydown="otpKey(event,2)"/>
+              <input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpInput(this,3)" onkeydown="otpKey(event,3)"/>
+              <input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpInput(this,4)" onkeydown="otpKey(event,4)"/>
+              <input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpInput(this,5)" onkeydown="otpKey(event,5)"/>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="width:100%;padding:13px;margin-bottom:12px" onclick="plVerifyOtp()">Verify OTP &amp; Login</button>
+          <div style="display:flex;justify-content:space-between;font-size:13px">
+            <button id="pl-resend-btn" onclick="plResendOtp()" style="background:none;border:none;color:var(--cyan);cursor:pointer;padding:0">Resend OTP</button>
+            <button onclick="plGoBack()" style="background:none;border:none;color:var(--t3);cursor:pointer;padding:0">← Change number</button>
+          </div>
+          <div id="pl-cooldown" style="font-size:12px;color:var(--t4);margin-top:6px;display:none"></div>
+        </div>
+
+        <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--border);text-align:center;font-size:13px;color:var(--t4)">
+          Doctor? <a href="#" onclick="showPage('page-doctor-login');return false" style="font-weight:600">Use Doctor Login</a>
+        </div>
+        <p style="margin-top:12px;font-size:11px;color:var(--border2);text-align:center">Illustrative design — OTP delivery not connected. OTP shown in demo alert.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+  PAGE: Doctor Login
+================================================================ -->
+<div class="page" id="page-doctor-login">
+  <div style="min-height:100vh;background:linear-gradient(135deg,#0a0f1e,#0f172a);display:flex;align-items:center;justify-content:center;padding:20px">
+    <div style="width:100%;max-width:400px">
+      <div style="text-align:center;margin-bottom:30px">
+        <div class="brand-logo" style="font-size:32px">MEDUSA-X</div>
+        <div style="font-size:11px;color:var(--t4);letter-spacing:.18em;text-transform:uppercase;font-weight:600;margin-top:4px">DOCTOR PORTAL</div>
+      </div>
+      <div class="card" style="box-shadow:var(--sh)">
+        <h2 style="font-size:19px;font-weight:700;margin-bottom:4px">Doctor Login</h2>
+        <p style="color:var(--t3);font-size:13px;margin-bottom:24px">Access the clinical dashboard using your credentials</p>
+        <div id="dl-alert" class="alert hidden" style="margin-bottom:14px"></div>
+        <div class="form-group"><label>Doctor ID</label><input type="text" id="dl-id" placeholder="DR-001" autocomplete="username"/></div>
+        <div class="form-group"><label>Password</label><input type="password" id="dl-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')dlLogin()"/></div>
+        <button class="btn btn-ghost" style="width:100%;padding:13px;margin-top:4px" onclick="dlLogin()">Sign In →</button>
+        <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border);text-align:center;font-size:13px;color:var(--t4)">
+          Patient? <a href="#" onclick="showPage('page-patient-login');return false" style="font-weight:600">Use Patient OTP Login</a>
+        </div>
+        <p style="margin-top:10px;font-size:11px;color:var(--border2);text-align:center">Demo credentials: DR-001 / doctor123</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+  PAGE: Patient Dashboard
+================================================================ -->
+<div class="page" id="page-patient-dash">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="brand-logo">MEDUSA-X</div>
+      <span style="font-size:11px;color:var(--t4);border-left:1px solid var(--border);padding-left:12px;letter-spacing:.1em;text-transform:uppercase">Patient Dashboard</span>
+    </div>
+    <div class="topbar-right">
+      <span id="pd-username" style="font-size:13px;color:var(--t3)"></span>
+      <button class="btn btn-ghost btn-sm" onclick="patientLogout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <div class="dash-layout">
+      <!-- Sidebar -->
+      <nav class="sidebar">
+        <button class="nav-item active" onclick="pdTab('profile',this)"><span>👤</span> My Profile</button>
+        <button class="nav-item" onclick="pdTab('history',this)"><span>🏥</span> Medical History</button>
+        <button class="nav-item" onclick="pdTab('tests',this)"><span>🧪</span> Test Results</button>
+        <button class="nav-item" onclick="pdTab('docs',this)"><span>📄</span> My Documents</button>
+        <button class="nav-item" onclick="pdTab('ai',this)"><span>✨</span> AI Assistant &amp; Brief</button>
+        <button class="nav-item" onclick="pdTab('notifications',this)"><span>🔔</span> Notifications <span id="pd-unread-badge" class="hidden" style="background:var(--red);color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px"></span></button>
+      </nav>
+
+      <!-- Content -->
+      <main class="sidebar-content">
+        <div id="pd-panel-profile" class="tab-panel active"></div>
+        <div id="pd-panel-history" class="tab-panel"></div>
+        <div id="pd-panel-tests" class="tab-panel"></div>
+        <div id="pd-panel-docs" class="tab-panel"></div>
+        <div id="pd-panel-ai" class="tab-panel"></div>
+        <div id="pd-panel-notifications" class="tab-panel"></div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+  PAGE: Doctor Dashboard
+================================================================ -->
+<div class="page" id="page-doctor-dash">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="brand-logo">MEDUSA-X</div>
+      <span style="font-size:11px;color:var(--t4);border-left:1px solid var(--border);padding-left:12px;letter-spacing:.1em;text-transform:uppercase">Doctor Dashboard</span>
+    </div>
+    <div class="topbar-right">
+      <span id="dd-username" style="font-size:13px;color:var(--t3)"></span>
+      <button class="btn btn-ghost btn-sm" onclick="doctorLogout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- Doctor sub-views -->
+    <div id="dd-view-list">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <h1 style="font-size:21px;font-weight:700">Patient Records</h1>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <input type="search" id="dd-search" placeholder="Search name, ID, phone…" style="width:230px" oninput="ddFilterPatients()"/>
+          <button class="btn btn-primary btn-sm" onclick="ddShowView('add')">+ Register New Patient</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Patient ID</th><th>Name</th><th>Phone</th><th>Blood Group</th>
+              <th>Age/Gender</th><th>Visits</th><th>Docs</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="dd-patient-table"></tbody>
+          </table>
+        </div>
+        <div id="dd-empty" class="hidden" style="padding:48px;text-align:center;color:var(--t4)">No patients registered yet. Click <strong>Register New Patient</strong> to begin.</div>
+      </div>
+    </div>
+
+    <div id="dd-view-add" class="hidden">
+      <button onclick="ddShowView('list')" style="background:none;border:none;color:var(--cyan);font-size:14px;cursor:pointer;margin-bottom:18px">← Back to patient list</button>
+      <h1 style="font-size:21px;font-weight:700;margin-bottom:22px">Register New Patient</h1>
+      <div class="card">
+        <div id="add-pt-alert" class="hidden" style="margin-bottom:14px"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Full Name *</label><input id="add-name" placeholder="Full legal name"/></div>
+          <div class="form-group"><label>Mobile Number (OTP login) *</label><input id="add-phone" type="tel" placeholder="+91 98765 43210"/></div>
+          <div class="form-group"><label>Email</label><input id="add-email" type="email" placeholder="patient@email.com"/></div>
+          <div class="form-group"><label>Date of Birth</label><input id="add-dob" type="date"/></div>
+          <div class="form-group"><label>Gender</label>
+            <select id="add-gender"><option value="">Select…</option><option>Male</option><option>Female</option><option>Non-binary</option><option>Other</option></select>
+          </div>
+          <div class="form-group"><label>Blood Group</label>
+            <select id="add-blood"><option value="">Select…</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option><option>Unknown</option></select>
+          </div>
+          <div class="form-group"><label>Emergency Contact</label><input id="add-emergency" placeholder="Name & phone number"/></div>
+          <div class="form-group"><label>Address</label><input id="add-address" placeholder="Street address"/></div>
+        </div>
+        <div class="form-group"><label>Medical History Notes</label><textarea id="add-history" rows="4" placeholder="Existing conditions, allergies, surgical history, current medications…"></textarea></div>
+        <button class="btn btn-primary" style="width:100%;padding:13px" onclick="ddSavePatient()">Register Patient</button>
+      </div>
+    </div>
+
+    <div id="dd-view-detail" class="hidden">
+      <button onclick="ddShowView('list')" style="background:none;border:none;color:var(--cyan);font-size:14px;cursor:pointer;margin-bottom:18px">← Back to patient list</button>
+      <div id="dd-detail-header" style="display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap"></div>
+
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="ddDetailTab('overview',this)">Overview</button>
+        <button class="tab-btn" onclick="ddDetailTab('visit',this)">Add Visit</button>
+        <button class="tab-btn" onclick="ddDetailTab('upload',this)">Upload Document</button>
+        <button class="tab-btn" onclick="ddDetailTab('test',this)">Add Test Result</button>
+      </div>
+
+      <div id="dd-detail-msg" class="hidden" style="margin-bottom:16px"></div>
+
+      <div id="dd-dp-overview" class="tab-panel active"></div>
+
+      <div id="dd-dp-visit" class="tab-panel">
+        <div class="card">
+          <div class="form-row">
+            <div class="form-group"><label>Visit Date</label><input id="v-date" type="date"/></div>
+            <div class="form-group"><label>Visit Type</label>
+              <select id="v-type"><option>OPD</option><option>IPD</option><option>Emergency</option><option>Follow-up</option><option>Telemedicine</option></select>
+            </div>
+            <div class="form-group"><label>Follow-up Date</label><input id="v-followup" type="date"/></div>
+          </div>
+          <div class="form-group"><label>Chief Complaint</label><textarea id="v-complaint" rows="2"></textarea></div>
+          <div class="form-group"><label>Diagnosis</label><textarea id="v-diagnosis" rows="2"></textarea></div>
+          <div class="form-group"><label>Treatment Plan</label><textarea id="v-treatment" rows="2"></textarea></div>
+          <div class="form-group"><label>Clinical Notes</label><textarea id="v-notes" rows="2"></textarea></div>
+          <div style="margin-bottom:14px">
+            <div style="font-size:12px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Prescriptions</div>
+            <div id="rx-list"></div>
+            <button onclick="addRxRow()" style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);border-radius:var(--r2);color:var(--purple);font-size:13px;padding:7px 14px;cursor:pointer">+ Add Prescription</button>
+          </div>
+          <button class="btn btn-primary" style="width:100%;padding:12px" onclick="ddSaveVisit()">Save Visit Record</button>
+        </div>
+      </div>
+
+      <div id="dd-dp-upload" class="tab-panel">
+        <div class="card">
+          <div class="form-group"><label>Document Category</label>
+            <select id="up-cat">
+              <option>PDF Medical Report</option><option>Laboratory Report</option><option>Prescription</option>
+              <option>Admission Note</option><option>Discharge Summary</option><option>Progress Note</option>
+              <option>Scanned Medical Document</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Document Name / Title *</label><input id="up-name" placeholder="e.g. Blood_Test_Nov2026.pdf"/></div>
+          <div class="form-group"><label>Description</label><input id="up-desc" placeholder="Optional description"/></div>
+          <div class="form-group"><label>Content / Notes (for text documents)</label><textarea id="up-content" rows="5" placeholder="Paste report text, lab values, or leave blank for file reference…"></textarea></div>
+          <div class="form-group"><label>Attach File (optional — name reference stored)</label><input type="file" id="up-file" style="color:var(--t2)"/></div>
+          <button class="btn btn-primary" onclick="ddSaveDocument()" style="margin-top:4px">Upload Document</button>
+        </div>
+      </div>
+
+      <div id="dd-dp-test" class="tab-panel">
+        <div class="card">
+          <div class="form-row">
+            <div class="form-group"><label>Test Name *</label><input id="t-name" placeholder="e.g. HbA1c"/></div>
+            <div class="form-group"><label>Test Date</label><input id="t-date" type="date"/></div>
+            <div class="form-group"><label>Result Value</label><input id="t-value" placeholder="e.g. 6.7%"/></div>
+            <div class="form-group"><label>Reference Range</label><input id="t-ref" placeholder="e.g. &lt; 7.0%"/></div>
+            <div class="form-group"><label>Status</label>
+              <select id="t-status"><option>Pending</option><option>Normal</option><option>Abnormal</option><option>Critical</option></select>
+            </div>
+          </div>
+          <div class="form-group"><label>Result Summary</label><textarea id="t-summary" rows="3"></textarea></div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);margin-bottom:16px"><input type="checkbox" id="t-reviewed"/> Reviewed by doctor</label>
+          <button class="btn btn-primary" onclick="ddSaveTest()">Add Test Result</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+  JAVASCRIPT
+================================================================ -->
+<script>
+'use strict';
+
+// ── State ──────────────────────────────────────────────────────────
+const DB_KEY = 'medusa_x_data';
+let db = loadDB();
+let currentPatientId = null;   // logged-in patient's ID
+let currentDoctorId  = null;   // logged-in doctor's ID
+let selectedPatientId = null;  // doctor's currently-selected patient
+let otpExpiry = null;
+let generatedOtp = null;
+let cooldownTimer = null;
+
+function loadDB() {
+  try { return JSON.parse(localStorage.getItem(DB_KEY)) || initDB(); }
+  catch { return initDB(); }
+}
+
+function initDB() {
+  return {
+    doctors: [
+      { id:'DR-001', name:'Dr. Admin', specialization:'General Medicine', email:'doctor@medusa-x.local', password:'doctor123' }
+    ],
+    patients: [],
+    visits: [],
+    prescriptions: [],
+    documents: [],
+    testResults: [],
+    notifications: [],
+    _nextPt: 1001
+  };
+}
+
+function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+function uid() { return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2); }
+
+function today() { return new Date().toISOString().slice(0,10); }
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+  catch { return iso; }
+}
+
+function escHtml(s) {
+  return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function initials(name) {
+  const p = String(name||'').trim().split(/\s+/).filter(Boolean);
+  if (!p.length) return 'P';
+  if (p.length===1) return p[0].slice(0,2).toUpperCase();
+  return (p[0][0]+p[p.length-1][0]).toUpperCase();
+}
+
+function ageFromDob(dob) {
+  if (!dob) return null;
+  const d = new Date(dob), t = new Date();
+  let a = t.getFullYear()-d.getFullYear();
+  if (t.getMonth()<d.getMonth()||(t.getMonth()===d.getMonth()&&t.getDate()<d.getDate())) a--;
+  return a;
+}
+
+function catCls(cat) {
+  const m={'PDF Medical Report':'cat-pdf','Laboratory Report':'cat-lab','Prescription':'cat-rx',
+    'Admission Note':'cat-admit','Discharge Summary':'cat-disch','Progress Note':'cat-prog','Scanned Medical Document':'cat-scan'};
+  return m[cat]||'cat-pdf';
+}
+
+function statusColor(s) {
+  return {Normal:'var(--green)',Abnormal:'var(--yellow)',Critical:'var(--red)',Pending:'var(--cyan)'}[s]||'var(--t2)';
+}
+
+// ── Toast ──────────────────────────────────────────────────────────
+function toast(msg, isErr=false) {
+  const el = document.createElement('div');
+  el.className = 'toast' + (isErr?' error':'');
+  el.textContent = msg;
+  document.getElementById('toast-wrap').appendChild(el);
+  setTimeout(()=>el.remove(), 3200);
+}
+
+// ── Page navigation ───────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── Alert helpers ─────────────────────────────────────────────────
+function setAlert(id, msg, type='error') {
+  const el = document.getElementById(id);
+  el.className = `alert alert-${type}`;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+function clearAlert(id) { document.getElementById(id).classList.add('hidden'); }
+
+// ================================================================
+//  PATIENT LOGIN — OTP flow (mock)
+// ================================================================
+const OTP_EXPIRY_MS = 5 * 60 * 1000;
+const OTP_COOLDOWN_S = 60;
+let plCooldownSec = 0;
+
+function plSendOtp() {
+  const phone = document.getElementById('pl-phone').value.trim();
+  if (!phone) { setAlert('pl-alert','Please enter your registered mobile number.'); return; }
+  const patient = db.patients.find(p=>p.phone===phone && p.active!==false);
+  if (!patient) {
+    setAlert('pl-alert','Mobile number not registered. Please contact your doctor.');
+    return;
+  }
+  _sendOtpToPhone(phone);
+}
+
+function _sendOtpToPhone(phone) {
+  generatedOtp = String(Math.floor(100000+Math.random()*900000));
+  otpExpiry = Date.now() + OTP_EXPIRY_MS;
+
+  document.getElementById('pl-phone-display').textContent = phone;
+  document.getElementById('pl-step-phone').classList.add('hidden');
+  document.getElementById('pl-step-otp').classList.remove('hidden');
+  clearAlert('pl-alert');
+  document.querySelectorAll('.otp-box').forEach(b=>{ b.value=''; b.classList.remove('filled'); });
+  document.querySelectorAll('.otp-box')[0].focus();
+
+  setAlert('pl-alert', `OTP sent to ${phone} · DEV MODE: OTP is ${generatedOtp} (expires in 5 min)`, 'info');
+
+  startPlCooldown();
+}
+
+function startPlCooldown() {
+  plCooldownSec = OTP_COOLDOWN_S;
+  const el = document.getElementById('pl-cooldown');
+  const btn = document.getElementById('pl-resend-btn');
+  el.style.display = 'block';
+  btn.disabled = true; btn.style.color = 'var(--t4)';
+  clearInterval(cooldownTimer);
+  cooldownTimer = setInterval(()=>{
+    plCooldownSec--;
+    el.textContent = `Resend available in ${plCooldownSec}s`;
+    if (plCooldownSec <= 0) {
+      clearInterval(cooldownTimer);
+      el.style.display = 'none';
+      btn.disabled = false; btn.style.color = 'var(--cyan)';
+    }
+  }, 1000);
+}
+
+function plGoBack() {
+  document.getElementById('pl-step-otp').classList.add('hidden');
+  document.getElementById('pl-step-phone').classList.remove('hidden');
+  clearAlert('pl-alert');
+  generatedOtp = null;
+}
+
+function plResendOtp() {
+  if (plCooldownSec > 0) return;
+  const phone = document.getElementById('pl-phone').value.trim();
+  _sendOtpToPhone(phone);
+}
+
+function otpInput(el, idx) {
+  el.value = el.value.replace(/\D/g,'').slice(0,1);
+  el.classList.toggle('filled', el.value!=='');
+  if (el.value && idx < 5) document.querySelectorAll('.otp-box')[idx+1].focus();
+}
+
+function otpKey(e, idx) {
+  const boxes = document.querySelectorAll('.otp-box');
+  if (e.key==='Backspace' && !boxes[idx].value && idx>0) boxes[idx-1].focus();
+  if (e.key==='ArrowLeft' && idx>0) boxes[idx-1].focus();
+  if (e.key==='ArrowRight' && idx<5) boxes[idx+1].focus();
+}
+
+function getOtpValue() {
+  return Array.from(document.querySelectorAll('.otp-box')).map(b=>b.value).join('');
+}
+
+function plVerifyOtp() {
+  const entered = getOtpValue();
+  const phone = document.getElementById('pl-phone').value.trim();
+
+  if (entered.length !== 6) { setAlert('pl-alert','Please enter all 6 OTP digits.'); return; }
+  if (Date.now() > otpExpiry) { setAlert('pl-alert','OTP has expired. Please request a new one.'); return; }
+  if (entered !== generatedOtp) { setAlert('pl-alert','Incorrect OTP. Please try again.'); return; }
+
+  const patient = db.patients.find(p=>p.phone===phone && p.active!==false);
+  if (!patient) { setAlert('pl-alert','Patient not found.'); return; }
+
+  currentPatientId = patient.id;
+  generatedOtp = null;
+  loadPatientDashboard(patient);
+  showPage('page-patient-dash');
+  toast(`Welcome back, ${patient.name}!`);
+}
+
+// ================================================================
+//  DOCTOR LOGIN
+// ================================================================
+function dlLogin() {
+  const id = document.getElementById('dl-id').value.trim();
+  const pw = document.getElementById('dl-pass').value;
+  if (!id||!pw) { setAlert('dl-alert','Doctor ID and password are required.'); return; }
+
+  const doctor = db.doctors.find(d=>d.id===id && d.password===pw);
+  if (!doctor) { setAlert('dl-alert','Invalid Doctor ID or password.'); return; }
+
+  currentDoctorId = doctor.id;
+  document.getElementById('dd-username').textContent = doctor.name + ' · ' + doctor.id;
+  ddShowView('list');
+  ddRenderPatientList();
+  showPage('page-doctor-dash');
+  toast(`Welcome, ${doctor.name}!`);
+}
+
+function doctorLogout() { currentDoctorId=null; showPage('page-landing'); }
+function patientLogout() { currentPatientId=null; showPage('page-landing'); }
+
+// ================================================================
+//  PATIENT DASHBOARD
+// ================================================================
+function loadPatientDashboard(patient) {
+  document.getElementById('pd-username').textContent = patient.name;
+  document.querySelectorAll('#page-patient-dash .tab-panel').forEach(p=>{p.innerHTML='';p.classList.remove('active');});
+  document.querySelectorAll('#page-patient-dash .nav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelector('#page-patient-dash .nav-item').classList.add('active');
+  document.getElementById('pd-panel-profile').classList.add('active');
+  renderPatientProfile(patient);
+  renderPatientNotifications(patient);
+}
+
+function pdTab(tab, btn) {
+  document.querySelectorAll('#page-patient-dash .nav-item').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#page-patient-dash .tab-panel').forEach(p=>p.classList.remove('active'));
+  const panel = document.getElementById('pd-panel-'+tab);
+  panel.classList.add('active');
+  const patient = db.patients.find(p=>p.id===currentPatientId);
+  if (!patient) return;
+  if (tab==='profile') renderPatientProfile(patient);
+  else if (tab==='history') renderPatientHistory(patient);
+  else if (tab==='tests') renderPatientTests(patient);
+  else if (tab==='docs') renderPatientDocs(patient);
+  else if (tab==='ai') renderPatientAiAssistant(patient);
+  else if (tab==='notifications') renderPatientNotifications(patient);
+}
+
+function renderPatientProfile(patient) {
+  const age = ageFromDob(patient.dob);
+  document.getElementById('pd-panel-profile').innerHTML = `
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:20px">My Profile</h2>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap">
+        <div class="avatar" style="width:56px;height:56px;font-size:20px;border-radius:14px">${escHtml(initials(patient.name))}</div>
+        <div>
+          <h3 style="font-size:19px;font-weight:700">${escHtml(patient.name)}</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+            <span class="badge" style="background:var(--cyan-soft);color:var(--cyan);border:1px solid rgba(6,182,212,.3)">${escHtml(patient.id)}</span>
+            ${patient.blood ? `<span class="badge" style="background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)">${escHtml(patient.blood)}</span>` : ''}
+          </div>
+        </div>
+      </div>
+      ${profileRow('Phone', patient.phone)}
+      ${profileRow('Email', patient.email)}
+      ${profileRow('Date of Birth', patient.dob)}
+      ${profileRow('Age', age!=null ? age+' years' : '—')}
+      ${profileRow('Gender', patient.gender)}
+      ${profileRow('Blood Group', patient.blood)}
+      ${profileRow('Address', patient.address)}
+      ${profileRow('Emergency Contact', patient.emergency)}
+    </div>`;
+}
+
+function profileRow(label, val) {
+  return `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border);font-size:14px">
+    <span style="color:var(--t3)">${escHtml(label)}</span>
+    <span style="font-weight:500;text-align:right;max-width:60%;word-break:break-word">${escHtml(val||'—')}</span>
+  </div>`;
+}
+
+function renderPatientHistory(patient) {
+  const visits = db.visits.filter(v=>v.patientId===patient.id).sort((a,b)=>b.date.localeCompare(a.date));
+  let html = `<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Medical History</h2>`;
+  if (patient.historyNotes) {
+    html += `<div class="card" style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">General Medical Notes</div>
+      <pre style="color:var(--t2);white-space:pre-wrap;font-size:14px;line-height:1.6">${escHtml(patient.historyNotes)}</pre>
+    </div>`;
+  }
+  html += `<div style="color:var(--t3);font-size:13px;margin-bottom:14px">${visits.length} visit${visits.length!==1?'s':''} on record</div>`;
+  if (!visits.length) {
+    html += `<div class="card" style="text-align:center;color:var(--t4);padding:36px">No visits recorded yet.</div>`;
+  }
+  for (const v of visits) {
+    const rxs = db.prescriptions.filter(r=>r.visitId===v.id);
+    html += `<div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+        <div>
+          <div style="font-weight:700;font-size:16px">${escHtml(v.date)}</div>
+          <div style="color:var(--t3);font-size:13px">${escHtml(v.type)} · ${escHtml(v.doctor||'Doctor')}</div>
+        </div>
+        ${v.followUp?`<span class="badge" style="background:rgba(245,158,11,.15);color:var(--yellow);border:1px solid rgba(245,158,11,.3)">Follow-up: ${escHtml(v.followUp)}</span>`:''}
+      </div>
+      ${v.complaint?`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;margin-bottom:3px">Chief Complaint</div><div style="color:var(--t2)">${escHtml(v.complaint)}</div></div>`:''}
+      ${v.diagnosis?`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;margin-bottom:3px">Diagnosis</div><div style="color:var(--t2)">${escHtml(v.diagnosis)}</div></div>`:''}
+      ${v.treatment?`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;margin-bottom:3px">Treatment Plan</div><div style="color:var(--t2)">${escHtml(v.treatment)}</div></div>`:''}
+      ${v.notes?`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;margin-bottom:3px">Clinical Notes</div><div style="color:var(--t2)">${escHtml(v.notes)}</div></div>`:''}
+      ${rxs.length?`<div style="background:var(--bg);border-radius:var(--r2);padding:14px;margin-top:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Prescriptions</div>
+        ${rxs.map(r=>`<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--border);font-size:13px">
+          <strong style="color:#c4b5fd">${escHtml(r.name)}</strong>
+          ${r.dosage?`<span style="color:var(--t2)"> · ${escHtml(r.dosage)}</span>`:''}
+          ${r.freq?`<span style="color:var(--t2)"> · ${escHtml(r.freq)}</span>`:''}
+          ${r.duration?`<span style="color:var(--t2)"> · ${escHtml(r.duration)}</span>`:''}
+          ${r.instructions?`<div style="color:var(--t3);margin-top:2px">${escHtml(r.instructions)}</div>`:''}
+        </div>`).join('')}
+      </div>`:''}
+    </div>`;
+  }
+  document.getElementById('pd-panel-history').innerHTML = html;
+}
+
+function renderPatientTests(patient) {
+  const tests = db.testResults.filter(t=>t.patientId===patient.id).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  let html = `<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Test Results</h2>`;
+  if (!tests.length) {
+    html += `<div class="card" style="text-align:center;color:var(--t4);padding:36px">No test results available.</div>`;
+  }
+  for (const t of tests) {
+    html += `<div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+        <div>
+          <div style="font-size:16px;font-weight:700">${escHtml(t.name)}</div>
+          <div style="color:var(--t3);font-size:13px">${escHtml(t.date||'—')}</div>
+        </div>
+        <span class="badge" style="background:${statusColor(t.status)}22;color:${statusColor(t.status)};border:1px solid ${statusColor(t.status)}44">${escHtml(t.status)}</span>
+      </div>
+      ${t.value?`<div style="display:flex;gap:28px;flex-wrap:wrap;margin-bottom:10px">
+        <div><div style="font-size:11px;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Result</div><div style="font-size:22px;font-weight:800;color:var(--text)">${escHtml(t.value)}</div></div>
+        ${t.ref?`<div><div style="font-size:11px;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Reference</div><div style="font-size:14px;color:var(--t2)">${escHtml(t.ref)}</div></div>`:''}
+      </div>`:''}
+      ${t.summary?`<div style="color:var(--t2);font-size:14px">${escHtml(t.summary)}</div>`:''}
+      ${t.reviewed?`<div style="color:var(--green);font-size:12px;margin-top:8px">✓ Reviewed by doctor</div>`:''}
+    </div>`;
+  }
+  document.getElementById('pd-panel-tests').innerHTML = html;
+}
+
+function renderPatientDocs(patient) {
+  const docs = db.documents.filter(d=>d.patientId===patient.id&&d.visibleToPatient!==false).sort((a,b)=>b.created.localeCompare(a.created));
+  const catIcon = {'PDF Medical Report':'📄','Laboratory Report':'🧪','Prescription':'💊','Admission Note':'🏥','Discharge Summary':'📋','Progress Note':'📝','Scanned Medical Document':'🩻'};
+  let html = `<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">My Documents</h2>`;
+  if (!docs.length) {
+    html += `<div class="card" style="text-align:center;color:var(--t4);padding:36px">No documents available.</div>`;
+  }
+  for (const d of docs) {
+    html += `<div class="card" style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:14px;min-width:0;flex:1">
+        <div style="font-size:28px;flex-shrink:0">${catIcon[d.category]||'📄'}</div>
+        <div style="min-width:0">
+          <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(d.name)}</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:5px">
+            <span class="badge ${catCls(d.category)}">${escHtml(d.category)}</span>
+            <span style="font-size:12px;color:var(--t4)">${escHtml(d.created?.slice(0,10)||'—')}</span>
+          </div>
+          ${d.description?`<div style="font-size:12px;color:var(--t3);margin-top:3px">${escHtml(d.description)}</div>`:''}
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="downloadDoc('${d.id}')">↓ Download</button>
+    </div>`;
+  }
+  document.getElementById('pd-panel-docs').innerHTML = html;
+}
+
+function downloadDoc(docId) {
+  const doc = db.documents.find(d=>d.id===docId);
+  if (!doc) return;
+  const content = doc.content || `Document: ${doc.name}\nCategory: ${doc.category}\nDate: ${doc.created?.slice(0,10)||'—'}\n\n${doc.description||'No additional content.'}`;
+  const blob = new Blob([content], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = doc.name.replace(/[/\\:*?"<>|]/g,'_');
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('Downloaded: ' + doc.name);
+}
+
+function getPatientAppointments(patient) {
+  const visits = db.visits.filter(v => v.patientId === patient.id && v.followUp);
+  const custom = (db.appointments || []).filter(a => a.patientId === patient.id);
+  const list = [];
+  for (const v of visits) {
+    list.push({
+      id: 'visit-fu-' + v.id,
+      date: v.followUp,
+      time: null,
+      doctor: v.doctor || null,
+      hospital: v.hospital || null,
+      status: 'Upcoming',
+      statusLabel: 'Upcoming (Follow-Up Listed — Booking Unconfirmed)',
+      source: `Visit Record (${v.date || 'Date not recorded'})`,
+      read: Boolean(v._fuRead),
+    });
+  }
+  for (const c of custom) {
+    list.push(c);
+  }
+  return list.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+}
+
+function requestPatientAppointment() {
+  const patient = db.patients.find(p => p.id === currentPatientId);
+  if (!patient) return;
+  const date = document.getElementById('pa-req-date').value;
+  if (!date) { toast('Please select a preferred date', true); return; }
+  const time = document.getElementById('pa-req-time').value.trim() || null;
+  const doctor = document.getElementById('pa-req-doctor').value.trim() || null;
+  const hospital = document.getElementById('pa-req-hospital').value.trim() || null;
+
+  if (!db.appointments) db.appointments = [];
+  const req = {
+    id: uid(),
+    patientId: patient.id,
+    date, time, doctor, hospital,
+    status: 'Requested',
+    statusLabel: 'Requested (Pending Confirmation)',
+    source: `Patient Appointment Request (${today()})`,
+    read: false,
+  };
+  db.appointments.push(req);
+  addNotification(
+    patient.id,
+    `Appointment Requested: ${date}`,
+    `Status: Requested (Pending Confirmation) | Time: ${time || 'Not recorded'} | Doctor: ${doctor || 'Not recorded'} | Hospital: ${hospital || 'Not recorded'} | Source: Patient Request`,
+    'warning'
+  );
+  saveDB();
+  renderPatientNotifications(patient);
+  toast('Appointment request submitted (Pending Confirmation)');
+}
+
+function renderPatientNotifications(patient) {
+  const notes = db.notifications.filter(n=>n.patientId===patient.id).sort((a,b)=>b.created.localeCompare(a.created));
+  const appts = getPatientAppointments(patient);
+  const unread = notes.filter(n=>!n.read).length + appts.filter(a=>!a.read).length;
+  const badge = document.getElementById('pd-unread-badge');
+  if (unread > 0) { badge.textContent = unread; badge.classList.remove('hidden'); }
+  else badge.classList.add('hidden');
+
+  let html = `<h2 style="font-size:20px;font-weight:700;margin-bottom:16px">Appointment Reminders &amp; Notifications</h2>`;
+  html += `<div class="card" style="margin-bottom:16px">
+    <div style="font-size:12px;font-weight:700;color:var(--cyan);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Request an Appointment (Distinct from Confirmed Booking)</div>
+    <div class="form-row">
+      <div class="form-group"><label>Date *</label><input type="date" id="pa-req-date"/></div>
+      <div class="form-group"><label>Preferred Time</label><input id="pa-req-time" placeholder="e.g. 10:30 AM"/></div>
+      <div class="form-group"><label>Doctor (Optional)</label><input id="pa-req-doctor" placeholder="Leave blank if unknown"/></div>
+      <div class="form-group"><label>Hospital / Clinic</label><input id="pa-req-hospital" placeholder="Leave blank if unknown"/></div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="requestPatientAppointment()">Submit Appointment Request</button>
+  </div>`;
+
+  if (appts.length) {
+    html += `<div style="font-size:13px;font-weight:700;color:var(--t2);margin-bottom:10px">Source-Linked Appointments (${appts.length})</div>`;
+    for (const a of appts) {
+      html += `<div class="card" style="margin-bottom:10px;opacity:${a.read?0.6:1};border-left:3px solid ${a.status==='Confirmed'?'var(--green)':a.status==='Requested'?'var(--yellow)':'var(--cyan)'}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div>
+            <div style="font-weight:600;margin-bottom:4px">${escHtml(a.date || 'Date not recorded')} · <span class="badge" style="background:var(--cyan-soft);color:var(--cyan)">${escHtml(a.statusLabel || a.status)}</span></div>
+            <div style="font-size:12.5px;color:var(--t2)">Time: ${escHtml(a.time || 'Not recorded')} | Doctor: ${escHtml(a.doctor || 'Not recorded')} | Hospital: ${escHtml(a.hospital || 'Not recorded')}</div>
+            <div style="font-size:11px;color:var(--t4);margin-top:4px">Source: ${escHtml(a.source)}</div>
+          </div>
+          ${!a.read?`<button onclick="markApptRead('${a.id}')" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--t3);font-size:12px;padding:4px 10px;cursor:pointer">Mark read</button>`:''}
+        </div>
+      </div>`;
+    }
+  }
+
+  if (!notes.length && !appts.length) {
+    html += `<div class="card" style="text-align:center;color:var(--t4);padding:36px">No notifications.</div>`;
+  }
+  for (const n of notes) {
+    const c = {info:'var(--cyan)',warning:'var(--yellow)',error:'var(--red)',success:'var(--green)'}[n.type]||'var(--cyan)';
+    html += `<div class="card" style="margin-bottom:12px;opacity:${n.read?0.6:1};border-left:3px solid ${c}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+        <div>
+          <div style="font-weight:600;margin-bottom:4px">${escHtml(n.title)}</div>
+          <div style="font-size:13px;color:var(--t2)">${escHtml(n.message)}</div>
+          <div style="font-size:11px;color:var(--t4);margin-top:5px">${escHtml(n.created?.slice(0,16).replace('T',' ')||'—')}</div>
+        </div>
+        ${!n.read?`<button onclick="markNotifRead('${n.id}')" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--t3);font-size:12px;padding:4px 10px;cursor:pointer;flex-shrink:0">Mark read</button>`:''}
+      </div>
+    </div>`;
+  }
+  document.getElementById('pd-panel-notifications').innerHTML = html;
+}
+
+function markApptRead(id) {
+  if (id.startsWith('visit-fu-')) {
+    const vid = id.replace('visit-fu-', '');
+    const v = db.visits.find(x => x.id === vid);
+    if (v) v._fuRead = true;
+  } else {
+    const a = (db.appointments || []).find(x => x.id === id);
+    if (a) a.read = true;
+  }
+  saveDB();
+  const patient = db.patients.find(p => p.id === currentPatientId);
+  if (patient) renderPatientNotifications(patient);
+}
+
+function markNotifRead(id) {
+  const n = db.notifications.find(x=>x.id===id);
+  if (n) { n.read = true; saveDB(); }
+  const patient = db.patients.find(p=>p.id===currentPatientId);
+  if (patient) renderPatientNotifications(patient);
+}
+
+// ================================================================
+//  DOCTOR DASHBOARD
+// ================================================================
+function ddShowView(v) {
+  ['list','add','detail'].forEach(x=>document.getElementById('dd-view-'+x).classList.add('hidden'));
+  document.getElementById('dd-view-'+v).classList.remove('hidden');
+  if (v==='list') ddRenderPatientList();
+  if (v==='add') {
+    ['add-name','add-phone','add-email','add-dob','add-history','add-emergency','add-address'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('add-gender').value='';
+    document.getElementById('add-blood').value='';
+    clearAlert('add-pt-alert');
+  }
+  if (v==='detail') {
+    // reset tabs
+    document.querySelectorAll('#dd-view-detail .tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('#dd-view-detail .tab-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('#dd-view-detail .tab-btn')[0].classList.add('active');
+    document.getElementById('dd-dp-overview').classList.add('active');
+    document.getElementById('dd-detail-msg').classList.add('hidden');
+    document.getElementById('v-date').value = today();
+    document.getElementById('t-date').value = today();
+    document.getElementById('rx-list').innerHTML = '';
+    document.getElementById('up-name').value=''; document.getElementById('up-desc').value=''; document.getElementById('up-content').value='';
+    document.getElementById('t-name').value=''; document.getElementById('t-value').value=''; document.getElementById('t-ref').value=''; document.getElementById('t-summary').value='';
+    document.getElementById('t-status').value='Pending';
+    document.getElementById('t-reviewed').checked=false;
+    ddRenderOverview();
+  }
+}
+
+function ddFilterPatients() { ddRenderPatientList(); }
+
+function ddRenderPatientList() {
+  const q = (document.getElementById('dd-search')||{value:''}).value.toLowerCase();
+  const patients = db.patients.filter(p=>p.active!==false && (!q || p.name.toLowerCase().includes(q)||p.id.toLowerCase().includes(q)||(p.phone||'').includes(q)));
+  const tbody = document.getElementById('dd-patient-table');
+  const empty = document.getElementById('dd-empty');
+
+  if (!patients.length) { tbody.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  tbody.innerHTML = patients.map(p=>{
+    const visits = db.visits.filter(v=>v.patientId===p.id).length;
+    const docs = db.documents.filter(d=>d.patientId===p.id).length;
+    const age = ageFromDob(p.dob);
+    return `<tr onclick="ddSelectPatient('${p.id}')">
+      <td><span style="font-family:var(--mono);font-size:12px;background:var(--muted);padding:3px 8px;border-radius:5px">${escHtml(p.id)}</span></td>
+      <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:32px;height:32px;font-size:12px;border-radius:50%">${escHtml(initials(p.name))}</div><div><div style="font-weight:600">${escHtml(p.name)}</div>${p.email?`<div style="font-size:12px;color:var(--t3)">${escHtml(p.email)}</div>`:''}</div></div></td>
+      <td style="font-size:13px;color:var(--t2)">${escHtml(p.phone||'—')}</td>
+      <td>${p.blood?`<span class="badge" style="background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)">${escHtml(p.blood)}</span>`:'—'}</td>
+      <td style="font-size:13px">${age!=null?age+' yrs':'—'}${p.gender?' · '+escHtml(p.gender):''}</td>
+      <td style="color:var(--cyan);font-weight:600">${visits}</td>
+      <td style="color:var(--purple);font-weight:600">${docs}</td>
+      <td onclick="event.stopPropagation()">
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="ddSelectPatient('${p.id}')">View</button>
+          <button class="btn btn-danger btn-sm" onclick="ddDeactivatePatient('${p.id}')">Remove</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function ddSelectPatient(id) {
+  selectedPatientId = id;
+  const p = db.patients.find(x=>x.id===id);
+  if (!p) return;
+  const age = ageFromDob(p.dob);
+  document.getElementById('dd-detail-header').innerHTML = `
+    <div class="avatar" style="width:52px;height:52px;font-size:20px;border-radius:14px">${escHtml(initials(p.name))}</div>
+    <div>
+      <h2 style="font-size:21px;font-weight:700">${escHtml(p.name)}</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+        <span class="badge" style="background:var(--cyan-soft);color:var(--cyan);border:1px solid rgba(6,182,212,.3)">${escHtml(p.id)}</span>
+        ${p.blood?`<span class="badge" style="background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)">${escHtml(p.blood)}</span>`:''}
+        ${p.gender?`<span style="font-size:13px;color:var(--t3)">${escHtml(p.gender)}</span>`:''}
+        ${age!=null?`<span style="font-size:13px;color:var(--t3)">${age} yrs</span>`:''}
+        <span style="font-size:13px;color:var(--t3)">📱 ${escHtml(p.phone)}</span>
+      </div>
+    </div>`;
+  ddShowView('detail');
+}
+
+function ddDetailTab(tab, btn) {
+  document.querySelectorAll('#dd-view-detail .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#dd-view-detail .tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('dd-dp-'+tab).classList.add('active');
+  document.getElementById('dd-detail-msg').classList.add('hidden');
+  if (tab==='overview') ddRenderOverview();
+}
+
+function ddRenderOverview() {
+  if (!selectedPatientId) return;
+  const p = db.patients.find(x=>x.id===selectedPatientId);
+  const visits = db.visits.filter(v=>v.patientId===selectedPatientId);
+  const docs = db.documents.filter(d=>d.patientId===selectedPatientId);
+  const tests = db.testResults.filter(t=>t.patientId===selectedPatientId);
+
+  document.getElementById('dd-dp-overview').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px">
+      ${statTile(visits.length,'Visits','var(--cyan)')}
+      ${statTile(docs.length,'Documents','var(--purple)')}
+      ${statTile(tests.length,'Test Results','var(--green)')}
+    </div>
+    ${p.historyNotes?`<div class="card" style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Medical History Notes</div>
+      <pre style="color:var(--t2);white-space:pre-wrap;font-size:13px;line-height:1.6">${escHtml(p.historyNotes)}</pre>
+    </div>`:''}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+      <div class="card">
+        <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Recent Visits</div>
+        ${visits.slice(0,5).map(v=>`<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed var(--border);font-size:13px"><div style="font-weight:600">${escHtml(v.date)} · <span style="color:var(--t3);font-weight:400">${escHtml(v.type)}</span></div>${v.diagnosis?`<div style="color:var(--t2);margin-top:2px">${escHtml(v.diagnosis)}</div>`:''}</div>`).join('')}
+        ${!visits.length?`<div style="color:var(--t4);font-size:13px">No visits yet.</div>`:''}
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Recent Documents</div>
+        ${docs.slice(0,5).map(d=>`<div style="font-size:13px;color:var(--t2);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📄 ${escHtml(d.name)}</div>`).join('')}
+        ${!docs.length?`<div style="color:var(--t4);font-size:13px">No documents yet.</div>`:''}
+      </div>
+    </div>`;
+}
+
+function statTile(n, label, color) {
+  return `<div style="background:${color}14;border:1px solid ${color}33;border-radius:12px;padding:14px 18px;text-align:center">
+    <div style="font-size:28px;font-weight:800;color:${color}">${n}</div>
+    <div style="font-size:11px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">${label}</div>
+  </div>`;
+}
+
+function ddSavePatient() {
+  const name = document.getElementById('add-name').value.trim();
+  const phone = document.getElementById('add-phone').value.trim();
+  if (!name||!phone) { setAlert('add-pt-alert','Patient name and mobile number are required.','error'); return; }
+  if (db.patients.find(p=>p.phone===phone&&p.active!==false)) { setAlert('add-pt-alert','A patient with this mobile number already exists.','error'); return; }
+
+  const id = 'PT-' + String(db._nextPt++).padStart(4,'0');
+  const patient = {
+    id, name, phone,
+    email: document.getElementById('add-email').value.trim()||null,
+    dob: document.getElementById('add-dob').value||null,
+    gender: document.getElementById('add-gender').value||null,
+    blood: document.getElementById('add-blood').value||null,
+    emergency: document.getElementById('add-emergency').value.trim()||null,
+    address: document.getElementById('add-address').value.trim()||null,
+    historyNotes: document.getElementById('add-history').value.trim()||null,
+    active: true,
+    createdAt: new Date().toISOString(),
+  };
+  db.patients.push(patient);
+  saveDB();
+  toast(`Patient ${id} registered — ${name} can now log in with ${phone}`);
+  selectedPatientId = id;
+  ddSelectPatient(id);
+}
+
+function ddDeactivatePatient(id) {
+  if (!confirm('Remove this patient from the active list?')) return;
+  const p = db.patients.find(x=>x.id===id);
+  if (p) { p.active=false; saveDB(); }
+  ddRenderPatientList();
+  toast('Patient removed');
+}
+
+function addRxRow() {
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center';
+  row.innerHTML = `
+    <input placeholder="Medication" style="flex:2;min-width:140px;padding:9px 11px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r2);color:var(--text)"/>
+    <input placeholder="Dosage" style="flex:1;min-width:90px;padding:9px 11px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r2);color:var(--text)"/>
+    <input placeholder="Frequency" style="flex:1;min-width:100px;padding:9px 11px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r2);color:var(--text)"/>
+    <input placeholder="Duration" style="flex:1;min-width:90px;padding:9px 11px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r2);color:var(--text)"/>
+    <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--red);font-size:20px;cursor:pointer;padding:0 4px">×</button>`;
+  document.getElementById('rx-list').appendChild(row);
+}
+
+function ddSaveVisit() {
+  if (!selectedPatientId) return;
+  const doctor = db.doctors.find(d=>d.id===currentDoctorId);
+  const visitDate = document.getElementById('v-date').value || today();
+  const visit = {
+    id: uid(), patientId: selectedPatientId, doctor: doctor?.name||'Doctor',
+    date: visitDate, type: document.getElementById('v-type').value,
+    complaint: document.getElementById('v-complaint').value.trim(),
+    diagnosis: document.getElementById('v-diagnosis').value.trim(),
+    treatment: document.getElementById('v-treatment').value.trim(),
+    notes: document.getElementById('v-notes').value.trim(),
+    followUp: document.getElementById('v-followup').value||null,
+    createdAt: new Date().toISOString(),
+  };
+  db.visits.push(visit);
+
+  const rows = document.getElementById('rx-list').querySelectorAll('div');
+  rows.forEach(row=>{
+    const inp = row.querySelectorAll('input');
+    if (!inp[0]?.value.trim()) return;
+    db.prescriptions.push({ id:uid(), visitId:visit.id, name:inp[0].value.trim(), dosage:inp[1]?.value.trim(), freq:inp[2]?.value.trim(), duration:inp[3]?.value.trim() });
+  });
+
+  addNotification(selectedPatientId, 'New Visit Recorded', `Your visit on ${visitDate} has been recorded.`, 'info');
+  saveDB();
+  toast('Visit saved!');
+  showDdMsg('Visit saved successfully.', false);
+  ddRenderOverview();
+}
+
+function ddSaveDocument() {
+  if (!selectedPatientId) return;
+  const name = document.getElementById('up-name').value.trim();
+  if (!name) { showDdMsg('Document name is required.', true); return; }
+  const doc = {
+    id: uid(), patientId: selectedPatientId,
+    name, category: document.getElementById('up-cat').value,
+    description: document.getElementById('up-desc').value.trim(),
+    content: document.getElementById('up-content').value.trim(),
+    visibleToPatient: true,
+    created: new Date().toISOString(),
+  };
+  db.documents.push(doc);
+  addNotification(selectedPatientId, 'New Document Available', `A new ${doc.category} "${name}" has been added to your records.`, 'info');
+  saveDB();
+  toast('Document saved!');
+  showDdMsg('Document uploaded successfully.', false);
+  ddRenderOverview();
+}
+
+function ddSaveTest() {
+  if (!selectedPatientId) return;
+  const name = document.getElementById('t-name').value.trim();
+  if (!name) { showDdMsg('Test name is required.', true); return; }
+  const test = {
+    id: uid(), patientId: selectedPatientId,
+    name, date: document.getElementById('t-date').value,
+    value: document.getElementById('t-value').value.trim(),
+    ref: document.getElementById('t-ref').value.trim(),
+    status: document.getElementById('t-status').value,
+    summary: document.getElementById('t-summary').value.trim(),
+    reviewed: document.getElementById('t-reviewed').checked,
+    created: new Date().toISOString(),
+  };
+  db.testResults.push(test);
+  addNotification(selectedPatientId, 'New Test Result', `Results for "${name}" are now available.`, 'info');
+  saveDB();
+  toast('Test result added!');
+  showDdMsg('Test result added successfully.', false);
+  ddRenderOverview();
+}
+
+function showDdMsg(msg, isErr) {
+  const el = document.getElementById('dd-detail-msg');
+  el.className = `alert ${isErr?'alert-error':'alert-success'}`;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  setTimeout(()=>el.classList.add('hidden'), 3500);
+}
+
+function addNotification(patientId, title, message, type='info') {
+  db.notifications.push({ id:uid(), patientId, title, message, type, read:false, created:new Date().toISOString() });
+}
+
+// ── Seed demo data ─────────────────────────────────────────────────
+(function seedDemo() {
+  if (db.patients.length) return; // already seeded
+  const pts = [
+    { id:'PT-1001', name:'Aarav Sharma', phone:'+919876543210', email:'aarav@example.com', dob:'1992-04-15', gender:'Male', blood:'O+', emergency:'Priya Sharma +91 9876543211', address:'412 Oakridge Ave', historyNotes:'Mild seasonal allergic rhinitis (cetirizine PRN).\nAppendectomy 2016. NKDA.' },
+    { id:'PT-1002', name:'Elena Rostova', phone:'+919812345678', email:'elena@example.com', dob:'1974-08-22', gender:'Female', blood:'A-', emergency:'Viktor Rostov +91 9812345679', address:'89 Harbor View Dr', historyNotes:'Essential hypertension — Lisinopril 10 mg daily.\nType 2 DM — Metformin 500 mg BID. HbA1c 6.7%.\nAllergy: Penicillin (hives).' },
+    { id:'PT-1003', name:'Marcus Vance', phone:'+919899001122', email:'marcus@example.com', dob:'1999-11-05', gender:'Male', blood:'B+', emergency:'Clara Vance +91 9899001123', address:'1504 Pine St', historyNotes:'Exercise-induced asthma — Albuterol HFA.\nRight ACL reconstruction 2024, cleared for activity.' },
+    { id:'PT-1004', name:'Sora Takahashi', phone:'+919767003344', email:'sora@example.com', dob:'1963-02-18', gender:'Female', blood:'AB+', emergency:'Kenji Takahashi +91 9767003345', address:'77 Maple Terrace', historyNotes:'Hypothyroidism — Levothyroxine 75 mcg.\nOsteopenia (DEXA 2025) — Vit D3 + Calcium.\nAllergy: Sulfa drugs (rash).' },
+  ];
+  pts.forEach(p=>{ p.active=true; p.createdAt=new Date().toISOString(); });
+  db.patients = pts;
+  db._nextPt = 1005;
+
+  // Sample visits
+  db.visits = [
+    { id:uid(), patientId:'PT-1002', doctor:'Dr. Admin', date:'2026-11-21', type:'OPD', complaint:'Fatigue and increased thirst', diagnosis:'Type 2 DM — quarterly review', treatment:'Continue Metformin 500 mg BID. HbA1c target < 7%.', notes:'BP 126/80 mmHg. SpO2 99%. Weight stable.', followUp:'2027-02-21', createdAt:new Date().toISOString() },
+    { id:uid(), patientId:'PT-1003', doctor:'Dr. Admin', date:'2026-11-22', type:'Follow-up', complaint:'Knee pain post-ACL surgery', diagnosis:'Post-ACL reconstruction — functional clearance', treatment:'Cleared for full athletic activity. Continue physiotherapy.', notes:'Full ROM. No joint effusion.', createdAt:new Date().toISOString() },
+    { id:uid(), patientId:'PT-1004', doctor:'Dr. Admin', date:'2026-11-24', type:'OPD', complaint:'Fatigue and mild cold intolerance', diagnosis:'Hypothyroidism — routine follow-up', treatment:'Continue Levothyroxine 75 mcg. Repeat TSH in 3 months.', notes:'TSH within normal limits.', createdAt:new Date().toISOString() },
+  ];
+
+  db.prescriptions = [
+    { id:uid(), visitId:db.visits[0].id, name:'Metformin', dosage:'500 mg', freq:'Twice daily', duration:'3 months' },
+    { id:uid(), visitId:db.visits[0].id, name:'Lisinopril', dosage:'10 mg', freq:'Once daily', duration:'Ongoing' },
+    { id:uid(), visitId:db.visits[2].id, name:'Levothyroxine', dosage:'75 mcg', freq:'Once daily (morning)', duration:'Ongoing' },
+  ];
+
+  db.documents = [
+    { id:uid(), patientId:'PT-1002', name:'HbA1c_Lab_Report_Nov2026.txt', category:'Laboratory Report', description:'HbA1c and metabolic panel', content:'HbA1c: 6.7%\nFasting Glucose: 118 mg/dL\neGFR: > 90\nBP: 126/80', visibleToPatient:true, created:new Date().toISOString() },
+    { id:uid(), patientId:'PT-1001', name:'Annual_Medical_Report_Nov2026.pdf', category:'PDF Medical Report', description:'Annual preventive evaluation', content:'Annual physical — all parameters within normal range. Seasonal rhinitis controlled.', visibleToPatient:true, created:new Date().toISOString() },
+    { id:uid(), patientId:'PT-1002', name:'Prescription_Nov2026.txt', category:'Prescription', description:'Current medications', content:'1. Metformin 500 mg BID\n2. Lisinopril 10 mg OD', visibleToPatient:true, created:new Date().toISOString() },
+    { id:uid(), patientId:'PT-1003', name:'Discharge_Summary_ACL.txt', category:'Discharge Summary', description:'ACL clearance discharge', content:'Cleared for full athletic activity post-ACL reconstruction.', visibleToPatient:true, created:new Date().toISOString() },
+    { id:uid(), patientId:'PT-1004', name:'Admission_Note_Endocrine.txt', category:'Admission Note', description:'Endocrine review admission note', content:'Admission for elective endocrine review. Levothyroxine therapy ongoing.', visibleToPatient:true, created:new Date().toISOString() },
+    { id:uid(), patientId:'PT-1004', name:'Progress_Note_Thyroid.txt', category:'Progress Note', description:'Thyroid function follow-up', content:'TSH within target. Continue current regimen. Repeat DEXA in 12 months.', visibleToPatient:true, created:new Date().toISOString() },
+    { id:uid(), patientId:'PT-1003', name:'Scan_Knee_Clearance.txt', category:'Scanned Medical Document', description:'Post-ACL radiology clearance', content:'Radiology scan: Graft intact. No effusion. Full ROM confirmed.', visibleToPatient:true, created:new Date().toISOString() },
+  ];
+
+  db.testResults = [
+    { id:uid(), patientId:'PT-1002', name:'HbA1c', date:'2026-11-21', value:'6.7%', ref:'< 7.0%', status:'Normal', summary:'Well-controlled. Continue current regimen.', reviewed:true, created:new Date().toISOString() },
+    { id:uid(), patientId:'PT-1002', name:'Fasting Glucose', date:'2026-11-21', value:'118 mg/dL', ref:'70–100 mg/dL', status:'Abnormal', summary:'Slightly elevated fasting glucose.', reviewed:true, created:new Date().toISOString() },
+    { id:uid(), patientId:'PT-1004', name:'TSH', date:'2026-11-24', value:'2.3 mIU/L', ref:'0.4–4.0 mIU/L', status:'Normal', summary:'Thyroid function within normal limits.', reviewed:true, created:new Date().toISOString() },
+  ];
+
+  db.notifications = [
+    { id:uid(), patientId:'PT-1002', title:'New Visit Recorded', message:'Your visit on 2026-11-21 has been recorded.', type:'info', read:false, created:new Date().toISOString() },
+    { id:uid(), patientId:'PT-1002', title:'New Lab Report Available', message:'Your HbA1c lab report is ready to view.', type:'success', read:false, created:new Date().toISOString() },
+    { id:uid(), patientId:'PT-1003', title:'Discharge Summary Ready', message:'Your discharge summary has been uploaded.', type:'info', read:false, created:new Date().toISOString() },
+  ];
+
+  saveDB();
+})();
+
+// ================================================================
+//  PATIENT PORTAL AI ASSISTANT & DOCTOR BRIEF
+// ================================================================
+function buildPatientRecordAnalysis(patient) {
+  const visits = db.visits
+    .filter(v => v.patientId === patient.id)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.time || '').localeCompare(b.time || ''));
+  const tests = db.testResults
+    .filter(t => t.patientId === patient.id)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  const docs = db.documents
+    .filter(d => d.patientId === patient.id && d.visibleToPatient !== false)
+    .sort((a, b) => (a.created || '').localeCompare(b.created || ''));
+
+  const age = ageFromDob(patient.dob);
+
+  // Extract allergies safely from medical history notes & documents (as pure data)
+  const corpus = [
+    patient.historyNotes || '',
+    ...visits.map(v => `${v.notes || ''} ${v.diagnosis || ''}`),
+    ...docs.map(d => `${d.name || ''} ${d.content || ''}`),
+  ].join('\n');
+  const allergyLines = [...new Set(
+    corpus.split(/\r?\n/).map(l => l.trim()).filter(l => /\b(allerg|nkda|penicillin|sulfa|peanut|rash|hives)\b/i.test(l))
+  )];
+
+  // Collect medications across prescriptions & visits
+  const meds = [];
+  for (const v of visits) {
+    const rxs = db.prescriptions.filter(r => r.visitId === v.id);
+    for (const r of rxs) {
+      meds.push({
+        name: r.name,
+        details: [r.dosage, r.freq, r.duration].filter(Boolean).join(', '),
+        source: `Visit Prescription (${v.date || 'Date not recorded'})`,
+      });
+    }
+  }
+  for (const d of docs.filter(x => x.category === 'Prescription')) {
+    meds.push({
+      name: d.name,
+      details: (d.content || d.description || 'See prescription document').replace(/\n/g, '; '),
+      source: `Document: ${d.name} (${d.created?.slice(0, 10) || 'Date not recorded'})`,
+    });
+  }
+
+  // Doctors & hospitals
+  const doctors = [...new Set(visits.map(v => v.doctor).filter(Boolean))];
+  const hospitals = [...new Set(visits.map(v => v.hospital).filter(Boolean))];
+  const todayStr = today();
+  const upcomingFollowUps = visits
+    .filter(v => v.followUp && v.followUp >= todayStr)
+    .map(v => ({ date: v.followUp, reason: v.diagnosis || v.complaint || 'Follow-up', doctor: v.doctor || 'Not recorded' }));
+  const pastFollowUps = visits
+    .filter(v => v.followUp && v.followUp < todayStr)
+    .map(v => ({ date: v.followUp, reason: v.diagnosis || v.complaint || 'Follow-up' }));
+
+  // Compare newer vs earlier records (visits & tests) without assuming causation
+  const changes = [];
+  const stayedSame = [];
+
+  if (allergyLines.length) {
+    stayedSame.push({
+      date: visits[visits.length - 1]?.date || 'On record',
+      source: 'Patient Profile / Records',
+      text: `Allergies consistent: ${allergyLines.join('; ')}`,
+    });
+  }
+
+  for (let i = 1; i < visits.length; i++) {
+    const prev = visits[i - 1], curr = visits[i];
+    const parts = [];
+    if (curr.diagnosis && curr.diagnosis !== prev.diagnosis) {
+      parts.push(`Diagnosis changed/added: "${curr.diagnosis}" (prior: "${prev.diagnosis || 'None'}")`);
+    } else if (curr.diagnosis && curr.diagnosis === prev.diagnosis) {
+      stayedSame.push({
+        date: curr.date || 'Date not recorded',
+        source: `Visit Record (${curr.type || 'Visit'})`,
+        text: `Diagnosis remained "${curr.diagnosis}" (same as ${prev.date || 'prior visit'})`,
+      });
+    }
+    if (curr.complaint && curr.complaint !== prev.complaint) {
+      parts.push(`Symptoms/reason changed: "${curr.complaint}" (prior: "${prev.complaint || 'None'}")`);
+    }
+    if (curr.treatment && curr.treatment !== prev.treatment) {
+      parts.push(`Treatment/follow-up notes updated: "${curr.treatment}"`);
+    } else if (curr.treatment && curr.treatment === prev.treatment) {
+      stayedSame.push({
+        date: curr.date || 'Date not recorded',
+        source: `Visit Record (${curr.type || 'Visit'})`,
+        text: `Treatment plan remained unchanged: "${curr.treatment}"`,
+      });
+    }
+    if (parts.length) {
+      changes.push({
+        date: curr.date || 'Date not recorded',
+        source: `Visit Record (${curr.type || 'Visit'})`,
+        text: parts.join(' · '),
+      });
+    }
+  }
+  // Compare same-named tests over time, plus summarize all dated tests
+  const testsByName = {};
+  for (const t of tests) {
+    const key = (t.name || '').trim().toLowerCase();
+    if (!testsByName[key]) testsByName[key] = [];
+    testsByName[key].push(t);
+  }
+  for (const list of Object.values(testsByName)) {
+    if (list.length > 1) {
+      for (let i = 1; i < list.length; i++) {
+        changes.push({
+          date: list[i].date || 'Date not recorded',
+          source: `Test Result (${list[i].name})`,
+          text: `Value recorded as ${list[i].value || 'N/A'} (${list[i].status || 'Pending'}), compared with ${list[i - 1].value || 'N/A'} on ${list[i - 1].date || 'earlier date'}.`,
+        });
+      }
+    } else if (list[0]) {
+      changes.push({
+        date: list[0].date || 'Date not recorded',
+        source: `Test Result (${list[0].name})`,
+        text: `Recorded ${list[0].value || 'No value'} (${list[0].status || 'Status not recorded'})${list[0].summary ? ' — ' + list[0].summary : ''}`,
+      });
+    }
+  }
+
+  // Missing or conflicting details flags
+  const flags = [];
+  if (!allergyLines.length) flags.push('Allergies: Not explicitly recorded — confirm with clinician.');
+  if (!hospitals.length) flags.push('Hospital / clinic name is not recorded on visit entries.');
+  if (visits.some(v => !v.time)) flags.push('Exact appointment times are not recorded on visit entries (only dates are stored).');
+  if (!visits.length) flags.push('No visit history entries found.');
+  if (!docs.length) flags.push('No uploaded medical documents found.');
+
+  return { patient, age, visits, tests, docs, allergyLines, meds, doctors, hospitals, upcomingFollowUps, pastFollowUps, changes, stayedSame, flags };
+}
+
+function buildDoctorBriefPlainText(a) {
+  const lines = [
+    'MEDUSA-X DOCTOR BRIEF',
+    'Label: Record-Based Overview — For Patient & Clinician Review Together',
+    '====================================================================',
+    `Patient Reference: ${a.patient.id} | Age: ${a.age != null ? a.age + ' yrs' : 'Not recorded'} | Gender: ${a.patient.gender || 'Not recorded'} | Blood Group: ${a.patient.blood || 'Not recorded'}`,
+    '',
+    '1. ALLERGIES',
+    ...(a.allergyLines.length ? a.allergyLines.map(l => `- ${l}`) : ['- Not recorded (verify with patient)']),
+    '',
+    '2. MEDICINES ON RECORD',
+    ...(a.meds.length ? a.meds.map(m => `- ${m.name}: ${m.details} [Source: ${m.source}]`) : ['- None recorded']),
+    '',
+    '3. VISIT TIMELINE (DATE & TIME ORDER)',
+    ...(a.visits.length
+      ? a.visits.map(v => `- ${v.date || 'Date not recorded'} | Time: ${v.time || 'Not recorded'} | Doctor: ${v.doctor || 'Not recorded'} | Hospital/Clinic: ${v.hospital || 'Not recorded'} | Reason: ${v.complaint || v.diagnosis || 'Not recorded'}`)
+      : ['- No visits recorded']),
+    '',
+    '4. DOCUMENTED CHANGES & TEST RESULTS (WITH SOURCE & DATE)',
+    ...(a.changes.length
+      ? a.changes.map(c => `- [${c.date} · ${c.source}] ${c.text}`)
+      : ['- No sequential changes recorded yet']),
+    'Note: Changes reflect chronological records only; causation is not assumed.',
+    '',
+    '5. FOLLOW-UP ITEMS & APPOINTMENTS',
+    ...(a.upcomingFollowUps.length
+      ? a.upcomingFollowUps.map(f => `- Upcoming: ${f.date} (${f.reason}, Doctor: ${f.doctor})`)
+      : ['- Upcoming appointments: None recorded']),
+    '',
+    '6. MISSING OR CONFLICTING DETAILS',
+    ...(a.flags.length ? a.flags.map(fl => `- ${fl}`) : ['- None flagged']),
+    '',
+    '7. QUESTIONS TO DISCUSS WITH YOUR CLINICIAN',
+    '- Are my recorded allergies and current medications accurate and up to date?',
+    '- Do any of my recent test results or documented changes require follow-up testing?',
+    '- What next appointment or monitoring schedule should I plan for?',
+  ];
+  return lines.join('\n');
+}
+
+function renderPatientAiAssistant(patient) {
+  const a = buildPatientRecordAnalysis(patient);
+  const briefText = buildDoctorBriefPlainText(a);
+  window._lastDoctorBriefText = briefText;
+  window._lastDoctorBriefPatientId = patient.id;
+
+  const visitsHtml = a.visits.length
+    ? a.visits.map(v => `
+      <tr>
+        <td>${escHtml(v.date || 'Not recorded')}</td>
+        <td>${escHtml(v.time || 'Not recorded')}</td>
+        <td>${escHtml(v.doctor || 'Not recorded')}</td>
+        <td>${escHtml(v.hospital || 'Not recorded')}</td>
+        <td>${escHtml(v.complaint || v.diagnosis || 'Not recorded')}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" style="color:var(--t4);text-align:center">No visits recorded.</td></tr>';
+
+  const changesHtml = a.changes.length
+    ? a.changes.map(c => `<li style="margin-bottom:6px"><strong>[${escHtml(c.date)} · ${escHtml(c.source)}]</strong> ${escHtml(c.text)}</li>`).join('')
+    : '<li style="color:var(--t4)">No sequential record changes available yet.</li>';
+
+  document.getElementById('pd-panel-ai').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+      <div>
+        <h2 style="font-size:20px;font-weight:700">AI Assistant &amp; Doctor Brief</h2>
+        <span class="badge" style="background:var(--cyan-soft);color:var(--cyan);border:1px solid rgba(6,182,212,.3);margin-top:4px">
+          Record-Based Overview — For Patient &amp; Clinician Review Together
+        </span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="copyDoctorBrief()">Copy Doctor Brief</button>
+        <button class="btn btn-primary btn-sm" onclick="downloadDoctorBrief()">↓ Download Brief (.txt)</button>
+      </div>
+    </div>
+
+    <div class="alert alert-info" style="margin-bottom:16px;font-size:12.5px">
+      This overview summarizes only your recorded visits, test results, and uploaded medical documents. It does not diagnose, recommend changing treatment, or replace your doctor.
+    </div>
+
+    <!-- Care-Relevant Summary (Privacy-minimized) -->
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="font-size:13px;color:var(--cyan);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Doctor Brief — Care Snapshot</h3>
+      <div style="font-size:13.5px;color:var(--t2);display:grid;gap:6px">
+        <div><strong>Patient Ref:</strong> ${escHtml(patient.id)} · <strong>Age/Gender:</strong> ${a.age != null ? a.age + ' yrs' : 'Not recorded'} / ${escHtml(patient.gender || 'Not recorded')} · <strong>Blood Group:</strong> ${escHtml(patient.blood || 'Not recorded')}</div>
+        <div><strong>Doctors Seen:</strong> ${a.doctors.length ? escHtml(a.doctors.join(', ')) : 'Not recorded'} · <strong>Hospitals/Clinics:</strong> ${a.hospitals.length ? escHtml(a.hospitals.join(', ')) : 'Not recorded'}</div>
+        <div><strong>Allergies:</strong> ${a.allergyLines.length ? escHtml(a.allergyLines.join(' | ')) : '<span style="color:var(--yellow)">Not recorded — verify with clinician</span>'}</div>
+        <div><strong>Medicines on Record:</strong> ${a.meds.length ? a.meds.map(m => `${escHtml(m.name)} (${escHtml(m.details)}) [${escHtml(m.source)}]`).join('; ') : 'None recorded'}</div>
+        <div><strong>Upcoming Appointments / Follow-Ups:</strong> ${a.upcomingFollowUps.length ? a.upcomingFollowUps.map(f => `${escHtml(f.date)} — ${escHtml(f.reason)}`).join('; ') : 'None recorded'}</div>
+      </div>
+    </div>
+
+    <!-- Date & Time Ordered Visits -->
+    <div class="card" style="margin-bottom:16px;padding:0;overflow:hidden">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--cyan);text-transform:uppercase;letter-spacing:.05em">
+        Doctor Meetings (Ordered by Date &amp; Time)
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Time</th><th>Doctor</th><th>Hospital / Clinic</th><th>Reason for Visit</th></tr></thead>
+          <tbody>${visitsHtml}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Documented Changes & Unchanged Items Across Records -->
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="font-size:13px;color:var(--cyan);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Current vs. Previous Records — What Changed</h3>
+      <ul style="margin-left:18px;color:var(--t2);font-size:13.5px;margin-bottom:14px">${changesHtml}</ul>
+      <h3 style="font-size:13px;color:var(--green);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">What Stayed the Same</h3>
+      <ul style="margin-left:18px;color:var(--t2);font-size:13.5px">
+        ${a.stayedSame.length ? a.stayedSame.map(s => `<li style="margin-bottom:5px"><strong>[${escHtml(s.date)} · ${escHtml(s.source)}]</strong> ${escHtml(s.text)}</li>`).join('') : '<li style="color:var(--t4)">No repeated unchanged items recorded across multiple dates.</li>'}
+      </ul>
+      <p style="margin-top:8px;font-size:12px;color:var(--t4)">Note: Temporal order is taken from your records; this summary does not assume a treatment caused a change.</p>
+    </div>
+
+    <!-- Missing / Conflicting Flags & Questions -->
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="font-size:13px;color:var(--yellow);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Missing or Conflicting Details</h3>
+      <ul style="margin-left:18px;color:var(--t2);font-size:13px;margin-bottom:14px">
+        ${a.flags.map(fl => `<li>${escHtml(fl)}</li>`).join('')}
+      </ul>
+      <h3 style="font-size:13px;color:var(--cyan);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Questions to Discuss With Your Doctor</h3>
+      <ul style="margin-left:18px;color:var(--t2);font-size:13px">
+        <li>Are my recorded allergies and current medicines accurate across all clinics?</li>
+        <li>Do any of my recent test results or documented changes need follow-up testing?</li>
+        <li>What follow-up appointment date should I schedule next?</li>
+      </ul>
+    </div>
+
+    <!-- Ask About Your Records -->
+    <div class="card">
+      <h3 style="font-size:13px;color:var(--cyan);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Ask About Your Records</h3>
+      <div id="pd-ai-answer" class="hidden alert alert-info" style="margin-bottom:12px;white-space:pre-wrap"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="pd-ai-question" placeholder="Ask about your allergies, medicines, test results, visits, or documents…" style="flex:1;min-width:220px" onkeydown="if(event.key==='Enter')answerPatientRecordQuestion()"/>
+        <button class="btn btn-primary btn-sm" onclick="answerPatientRecordQuestion()">Ask</button>
+      </div>
+    </div>
+  `;
+}
+
+function answerPatientRecordQuestion() {
+  const patient = db.patients.find(p => p.id === currentPatientId);
+  if (!patient) return;
+  const q = (document.getElementById('pd-ai-question').value || '').trim().toLowerCase();
+  const out = document.getElementById('pd-ai-answer');
+  if (!q) return;
+
+  const a = buildPatientRecordAnalysis(patient);
+  let reply = '';
+  if (/\b(allerg|react)\b/.test(q)) {
+    reply = a.allergyLines.length
+      ? `Recorded allergies: ${a.allergyLines.join('; ')} [Source: Patient Medical History / Records]`
+      : 'No allergies are explicitly recorded in your files. Please confirm this with your clinician.';
+  } else if (/\b(med|rx|prescrip|drug|tablet|dose)\b/.test(q)) {
+    reply = a.meds.length
+      ? 'Medicines on record:\n' + a.meds.map(m => `• ${m.name} (${m.details}) [Source: ${m.source}]`).join('\n')
+      : 'No prescribed medicines are recorded in your files.';
+  } else if (/\b(test|lab|result|hba1c|glucose|tsh)\b/.test(q)) {
+    reply = a.tests.length
+      ? 'Test results on record:\n' + a.tests.map(t => `• ${t.date || 'Date N/A'} — ${t.name}: ${t.value || 'N/A'} (${t.status})`).join('\n')
+      : 'No laboratory or test results are recorded yet.';
+  } else if (/\b(visit|doctor|hospital|appointment|follow)\b/.test(q)) {
+    reply = a.visits.length
+      ? 'Visits on record:\n' + a.visits.map(v => `• ${v.date} (${v.time || 'Time not recorded'}) — ${v.doctor || 'Doctor not recorded'} at ${v.hospital || 'Hospital not recorded'}: ${v.complaint || v.diagnosis || 'Not recorded'}`).join('\n')
+      : 'No visits are recorded yet.';
+  } else if (/\b(doc|file|report|pdf|scan)\b/.test(q)) {
+    reply = a.docs.length
+      ? 'Uploaded documents:\n' + a.docs.map(d => `• ${d.created?.slice(0, 10) || 'Date N/A'} [${d.category}] ${d.name}`).join('\n')
+      : 'No documents are uploaded yet.';
+  } else {
+    reply = buildDoctorBriefPlainText(a);
+  }
+
+  out.textContent = reply;
+  out.classList.remove('hidden');
+}
+
+function copyDoctorBrief() {
+  if (!window._lastDoctorBriefText) return;
+  navigator.clipboard?.writeText(window._lastDoctorBriefText)
+    .then(() => toast('Doctor Brief copied to clipboard'))
+    .catch(() => toast('Could not copy automatically — use Download Brief', true));
+}
+
+function downloadDoctorBrief() {
+  if (!window._lastDoctorBriefText) return;
+  const blob = new Blob([window._lastDoctorBriefText], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Doctor_Brief_${window._lastDoctorBriefPatientId || 'Patient'}_${today()}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast('Doctor Brief downloaded');
+}
+</script>
+</body>
+</html>
